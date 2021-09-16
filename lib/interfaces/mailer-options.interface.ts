@@ -37,6 +37,7 @@ export interface MailerOptions {
   };
   template?: {
     dir?: string;
+    templateIdGetter?: (template: any) => string;
     adapter?: TemplateAdapter;
     options?: { [name: string]: any };
   };

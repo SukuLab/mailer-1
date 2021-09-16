@@ -17,7 +17,7 @@ import { TemplateAdapterConfig } from '../interfaces/template-adapter-config.int
 
 export class EjsAdapter implements TemplateAdapter {
   private precompiledTemplates: {
-    [name: string]: TemplateFunction | AsyncTemplateFunction | ClientFunction;
+    [id: string]: TemplateFunction | AsyncTemplateFunction | ClientFunction;
   } = {};
 
   private config: TemplateAdapterConfig = {
@@ -39,13 +39,15 @@ export class EjsAdapter implements TemplateAdapter {
       mail.data.template.startsWith('./')
         ? path.dirname(mail.data.template)
         : get(mailerOptions, 'template.dir', '')
+    const templateIdGetter = get(mailerOptions, 'template.templateIdGetter', () => templateName);
+    const templateId = templateIdGetter(mail.data.template);
     const templatePath = path.join(templateDir, templateName + templateExt);
 
-    if (!this.precompiledTemplates[templateName]) {
+    if (!this.precompiledTemplates[templateId]) {
       try {
         const template = fs.readFileSync(templatePath, 'UTF-8');
 
-        this.precompiledTemplates[templateName] = compile(template, {
+        this.precompiledTemplates[templateId] = compile(template, {
           ...get(mailerOptions, 'template.options', {}),
           filename: templatePath,
         });
@@ -54,7 +56,7 @@ export class EjsAdapter implements TemplateAdapter {
       }
     }
 
-    const rendered = this.precompiledTemplates[templateName](mail.data.context);
+    const rendered = this.precompiledTemplates[templateId](mail.data.context);
 
     const render = (html: string) => {
       if (this.config.inlineCssEnabled) {

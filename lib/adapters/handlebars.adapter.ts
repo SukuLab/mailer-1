@@ -14,7 +14,7 @@ import { TemplateAdapterConfig } from '../interfaces/template-adapter-config.int
 
 export class HandlebarsAdapter implements TemplateAdapter {
   private precompiledTemplates: {
-    [name: string]: handlebars.TemplateDelegate;
+    [idd: string]: handlebars.TemplateDelegate;
   } = {};
 
   private config: TemplateAdapterConfig = {
@@ -38,13 +38,15 @@ export class HandlebarsAdapter implements TemplateAdapter {
       const templateDir = template.startsWith('./')
         ? path.dirname(template)
         : get(options, 'dir', '');
+      const templateIdGetter = get(options, 'templateIdGetter', () => templateName);
+      const templateId = templateIdGetter(template);
       const templatePath = path.join(templateDir, templateName + templateExt);
 
-      if (!this.precompiledTemplates[templateName]) {
+      if (!this.precompiledTemplates[templateId]) {
         try {
           const template = fs.readFileSync(templatePath, 'UTF-8');
 
-          this.precompiledTemplates[templateName] = handlebars.compile(
+          this.precompiledTemplates[templateId] = handlebars.compile(
             template,
             get(options, 'options', {}),
           );
@@ -56,12 +58,13 @@ export class HandlebarsAdapter implements TemplateAdapter {
       return {
         templateExt,
         templateName,
+        templateId,
         templateDir,
         templatePath,
       };
     };
 
-    const { templateName } = precompile(
+    const { templateId } = precompile(
       mail.data.template,
       callback,
       mailerOptions.template,
@@ -79,7 +82,7 @@ export class HandlebarsAdapter implements TemplateAdapter {
       );
     }
 
-    const rendered = this.precompiledTemplates[templateName](
+    const rendered = this.precompiledTemplates[templateId](
       mail.data.context,
       {
         ...runtimeOptions,
