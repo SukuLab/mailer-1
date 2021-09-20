@@ -27,11 +27,11 @@ class PugAdapter {
             }
             if (this.config.inlineCssEnabled) {
                 inlineCss(body, this.config.inlineCssOptions).then((html) => {
-                    return callback(html);
+                    return callback(null, html);
                 });
             }
             else {
-                return callback(body);
+                return callback(null, body);
             }
         });
     }

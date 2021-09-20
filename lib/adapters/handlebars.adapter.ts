@@ -98,10 +98,10 @@ export class HandlebarsAdapter implements TemplateAdapter {
 
     if (this.config.inlineCssEnabled) {
       inlineCss(rendered, this.config.inlineCssOptions).then((html) => {
-        return callback(html);
+        return callback(null, html);
       });
     } else {
-      return callback(rendered);
+      return callback(null, rendered);
     }
   }
 }

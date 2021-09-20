@@ -37,11 +37,11 @@ class EjsAdapter {
         const render = (html) => {
             if (this.config.inlineCssEnabled) {
                 inlineCss(html, this.config.inlineCssOptions).then((html) => {
-                    return callback(html);
+                    return callback(null, html);
                 });
             }
             else {
-                return callback(html);
+                return callback(null, html);
             }
         };
         if (typeof rendered === 'string') {

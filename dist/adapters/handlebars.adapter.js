@@ -60,11 +60,11 @@ class HandlebarsAdapter {
         const rendered = this.precompiledTemplates[templateId](mailContext, Object.assign(Object.assign({}, runtimeOptions), { partials: this.precompiledTemplates }));
         if (this.config.inlineCssEnabled) {
             inlineCss(rendered, this.config.inlineCssOptions).then((html) => {
-                return callback(html);
+                return callback(null, html);
             });
         }
         else {
-            return callback(rendered);
+            return callback(null, rendered);
         }
     }
 }

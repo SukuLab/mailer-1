@@ -69,10 +69,10 @@ export class EjsAdapter implements TemplateAdapter {
     const render = (html: string) => {
       if (this.config.inlineCssEnabled) {
         inlineCss(html, this.config.inlineCssOptions).then((html) => {
-          return callback(html);
+          return callback(null, html);
         });
       } else {
-        return callback(html);
+        return callback(null, html);
       }
     };
 
