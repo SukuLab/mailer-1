@@ -3,7 +3,7 @@ import { MailerOptions } from './interfaces/mailer-options.interface';
 import { ISendMailOptions } from './interfaces/send-mail-options.interface';
 import { MailerTransportFactory as IMailerTransportFactory } from './interfaces/mailer-transport-factory.interface';
 export declare class MailerService {
-    private readonly mailerOptions;
+    readonly mailerOptions: MailerOptions;
     private readonly transportFactory;
     private transporter;
     private transporters;

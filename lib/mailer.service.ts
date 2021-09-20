@@ -54,7 +54,7 @@ export class MailerService {
   }
 
   constructor(
-    @Inject(MAILER_OPTIONS) private readonly mailerOptions: MailerOptions,
+    @Inject(MAILER_OPTIONS) readonly mailerOptions: MailerOptions,
     @Optional()
     @Inject(MAILER_TRANSPORT_FACTORY)
     private readonly transportFactory: IMailerTransportFactory,
