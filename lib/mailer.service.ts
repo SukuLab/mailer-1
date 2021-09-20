@@ -32,7 +32,15 @@ export class MailerService {
           return callback();
         }
 
-        return templateAdapter.compile(mail, callback, this.mailerOptions);
+        return templateAdapter.compile(
+          (mail as any).data.template,
+          (mail as any).data.context,
+          function (html) {
+            mail.data.html = html;
+            callback();
+          },
+          this.mailerOptions
+        );
       });
 
       if (this.mailerOptions.preview) {

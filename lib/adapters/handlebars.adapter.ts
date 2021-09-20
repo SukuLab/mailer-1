@@ -31,14 +31,23 @@ export class HandlebarsAdapter implements TemplateAdapter {
     Object.assign(this.config, config);
   }
 
-  public compile(mail: any, callback: any, mailerOptions: MailerOptions): void {
+  public compile(
+    mailTemplate: string,
+    mailContext: any,
+    callback: any,
+    mailerOptions: MailerOptions,
+  ): void {
     const precompile = (template: any, callback: any, options: any) => {
       const templateExt = path.extname(template) || '.hbs';
       const templateName = path.basename(template, path.extname(template));
       const templateDir = template.startsWith('./')
         ? path.dirname(template)
         : get(options, 'dir', '');
-      const templateIdGetter = get(options, 'templateIdGetter', () => templateName);
+      const templateIdGetter = get(
+        options,
+        'templateIdGetter',
+        () => templateName,
+      );
       const templateId = templateIdGetter(template);
       const templatePath = path.join(templateDir, templateName + templateExt);
 
@@ -65,7 +74,7 @@ export class HandlebarsAdapter implements TemplateAdapter {
     };
 
     const { templateId } = precompile(
-      mail.data.template,
+      mailTemplate,
       callback,
       mailerOptions.template,
     );
@@ -82,22 +91,17 @@ export class HandlebarsAdapter implements TemplateAdapter {
       );
     }
 
-    const rendered = this.precompiledTemplates[templateId](
-      mail.data.context,
-      {
-        ...runtimeOptions,
-        partials: this.precompiledTemplates,
-      },
-    );
+    const rendered = this.precompiledTemplates[templateId](mailContext, {
+      ...runtimeOptions,
+      partials: this.precompiledTemplates,
+    });
 
     if (this.config.inlineCssEnabled) {
       inlineCss(rendered, this.config.inlineCssOptions).then((html) => {
-        mail.data.html = html;
-        return callback();
+        return callback(html);
       });
     } else {
-      mail.data.html = rendered;
-      return callback();
+      return callback(rendered);
     }
   }
 }

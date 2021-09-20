@@ -29,18 +29,26 @@ export class EjsAdapter implements TemplateAdapter {
     Object.assign(this.config, config);
   }
 
-  public compile(mail: any, callback: any, mailerOptions: MailerOptions): void {
-    const templateExt = path.extname(mail.data.template) || '.ejs';
+  public compile(
+    mailTemplate: string,
+    mailContext: any,
+    callback: any,
+    mailerOptions: MailerOptions,
+  ): void {
+    const templateExt = path.extname(mailTemplate) || '.ejs';
     const templateName = path.basename(
-      mail.data.template,
-      path.extname(mail.data.template),
+      mailTemplate,
+      path.extname(mailTemplate),
     );
-    const templateDir =
-      mail.data.template.startsWith('./')
-        ? path.dirname(mail.data.template)
-        : get(mailerOptions, 'template.dir', '')
-    const templateIdGetter = get(mailerOptions, 'template.templateIdGetter', () => templateName);
-    const templateId = templateIdGetter(mail.data.template);
+    const templateDir = mailTemplate.startsWith('./')
+      ? path.dirname(mailTemplate)
+      : get(mailerOptions, 'template.dir', '');
+    const templateIdGetter = get(
+      mailerOptions,
+      'template.templateIdGetter',
+      () => templateName,
+    );
+    const templateId = templateIdGetter(mailTemplate);
     const templatePath = path.join(templateDir, templateName + templateExt);
 
     if (!this.precompiledTemplates[templateId]) {
@@ -56,17 +64,15 @@ export class EjsAdapter implements TemplateAdapter {
       }
     }
 
-    const rendered = this.precompiledTemplates[templateId](mail.data.context);
+    const rendered = this.precompiledTemplates[templateId](mailContext);
 
     const render = (html: string) => {
       if (this.config.inlineCssEnabled) {
         inlineCss(html, this.config.inlineCssOptions).then((html) => {
-          mail.data.html = html;
-          return callback();
+          return callback(html);
         });
       } else {
-        mail.data.html = html;
-        return callback();
+        return callback(html);
       }
     };
 

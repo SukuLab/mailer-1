@@ -19,19 +19,24 @@ export class PugAdapter implements TemplateAdapter {
     Object.assign(this.config, config);
   }
 
-  public compile(mail: any, callback: any, mailerOptions: MailerOptions): void {
-    const templateExt = path.extname(mail.data.template) || '.pug';
+  public compile(
+    mailTemplate: string,
+    mailContext: any,
+    callback: any,
+    mailerOptions: MailerOptions,
+  ): void {
+    const templateExt = path.extname(mailTemplate) || '.pug';
     const templateName = path.basename(
-      mail.data.template,
-      path.extname(mail.data.template),
+      mailTemplate,
+      path.extname(mailTemplate),
     );
-    const templateDir = mail.data.template.startsWith('./')
-      ? path.dirname(mail.data.template)
+    const templateDir = mailTemplate.startsWith('./')
+      ? path.dirname(mailTemplate)
       : get(mailerOptions, 'template.dir', '');
     const templatePath = path.join(templateDir, templateName + templateExt);
 
     const options = {
-      ...mail.data.context,
+      ...mailContext,
       ...get(mailerOptions, 'template.options', {}),
     };
 
@@ -42,12 +47,10 @@ export class PugAdapter implements TemplateAdapter {
 
       if (this.config.inlineCssEnabled) {
         inlineCss(body, this.config.inlineCssOptions).then((html) => {
-          mail.data.html = html;
-          return callback();
+          return callback(html);
         });
       } else {
-        mail.data.html = body;
-        return callback();
+        return callback(body);
       }
     });
   }

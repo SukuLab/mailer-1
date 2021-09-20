@@ -37,7 +37,7 @@ export interface MailerOptions {
   };
   template?: {
     dir?: string;
-    templateIdGetter?: (template: any) => string;
+    templateIdGetter?: (template: string) => string;
     adapter?: TemplateAdapter;
     options?: { [name: string]: any };
   };
@@ -57,7 +57,7 @@ export interface MailerOptions {
          * an options object that is passed to `open` (defaults to { wait: false })
          *
          * @see https://github.com/sindresorhus/open#options
-         * @type {(boolean | { wait: boolean; app: string | string[] })}
+         * @type {(boolean | { wait: boolean, app: string | string[] })}
          */
         open: boolean | { wait: boolean; app: string | string[] };
       }>;
