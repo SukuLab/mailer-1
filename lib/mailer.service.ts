@@ -35,7 +35,10 @@ export class MailerService {
         return templateAdapter.compile(
           (mail as any).data.template,
           (mail as any).data.context,
-          function (html) {
+          function (err, html) {
+            if (err) {
+              throw err;
+            }
             mail.data.html = html;
             callback();
           },

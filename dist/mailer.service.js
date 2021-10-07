@@ -45,7 +45,10 @@ let MailerService = class MailerService {
                 if (mail.data.html) {
                     return callback();
                 }
-                return templateAdapter.compile(mail.data.template, mail.data.context, function (html) {
+                return templateAdapter.compile(mail.data.template, mail.data.context, function (err, html) {
+                    if (err) {
+                        throw err;
+                    }
                     mail.data.html = html;
                     callback();
                 }, this.mailerOptions);
