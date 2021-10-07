@@ -10,6 +10,7 @@ const lodash_1 = require("lodash");
 class HandlebarsAdapter {
     constructor(helpers, config) {
         this.precompiledTemplates = {};
+        this.precompiledPartials = {};
         this.config = {
             inlineCssOptions: { url: ' ' },
             inlineCssEnabled: true,
@@ -22,7 +23,7 @@ class HandlebarsAdapter {
         Object.assign(this.config, config);
     }
     compile(mailTemplate, mailContext, callback, mailerOptions) {
-        const precompile = (template, options) => {
+        const precompile = (template, options, precompileCache) => {
             const templateExt = path.extname(template) || '.hbs';
             const templateName = path.basename(template, path.extname(template));
             const templateDir = template.startsWith('./')
@@ -32,10 +33,10 @@ class HandlebarsAdapter {
             const templateId = templateIdGetter(template);
             const templatePath = path.join(templateDir, templateName + templateExt);
             let error = null;
-            if (!this.precompiledTemplates[templateId]) {
+            if (!precompileCache[templateId]) {
                 try {
                     const template = fs.readFileSync(templatePath, 'UTF-8');
-                    this.precompiledTemplates[templateId] = handlebars.compile(template, lodash_1.get(options, 'options', {}));
+                    precompileCache[templateId] = handlebars.compile(template, lodash_1.get(options, 'options', {}));
                 }
                 catch (err) {
                     error = err;
@@ -50,7 +51,7 @@ class HandlebarsAdapter {
                 templatePath,
             };
         };
-        const { templateId, error } = precompile(mailTemplate, mailerOptions.template);
+        const { templateId, error } = precompile(mailTemplate, mailerOptions.template, this.precompiledTemplates);
         if (error) {
             return callback(error);
         }
@@ -60,9 +61,9 @@ class HandlebarsAdapter {
         });
         if (runtimeOptions.partials) {
             const files = glob.sync(path.join(runtimeOptions.partials.dir, '*.hbs'));
-            files.forEach((file) => precompile(file, runtimeOptions.partials));
+            files.forEach((file) => precompile(file, runtimeOptions.partials, this.precompiledPartials));
         }
-        const rendered = this.precompiledTemplates[templateId](mailContext, Object.assign(Object.assign({}, runtimeOptions), { partials: this.precompiledTemplates }));
+        const rendered = this.precompiledTemplates[templateId](mailContext, Object.assign(Object.assign({}, runtimeOptions), { partials: this.precompiledPartials }));
         if (this.config.inlineCssEnabled) {
             inlineCss(rendered, this.config.inlineCssOptions).then((html) => {
                 return callback(null, html);

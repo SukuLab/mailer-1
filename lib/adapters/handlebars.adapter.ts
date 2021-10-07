@@ -16,6 +16,9 @@ export class HandlebarsAdapter implements TemplateAdapter {
   private precompiledTemplates: {
     [idd: string]: handlebars.TemplateDelegate;
   } = {};
+  private precompiledPartials: {
+    [idd: string]: handlebars.TemplateDelegate;
+  } = {};
 
   private config: TemplateAdapterConfig = {
     inlineCssOptions: { url: ' ' },
@@ -37,7 +40,7 @@ export class HandlebarsAdapter implements TemplateAdapter {
     callback: any,
     mailerOptions: MailerOptions,
   ): void {
-    const precompile = (template: any, options: any) => {
+    const precompile = (template: any, options: any, precompileCache) => {
       const templateExt = path.extname(template) || '.hbs';
       const templateName = path.basename(template, path.extname(template));
       const templateDir = template.startsWith('./')
@@ -52,11 +55,11 @@ export class HandlebarsAdapter implements TemplateAdapter {
       const templatePath = path.join(templateDir, templateName + templateExt);
 
       let error = null;
-      if (!this.precompiledTemplates[templateId]) {
+      if (!precompileCache[templateId]) {
         try {
           const template = fs.readFileSync(templatePath, 'UTF-8');
 
-          this.precompiledTemplates[templateId] = handlebars.compile(
+          precompileCache[templateId] = handlebars.compile(
             template,
             get(options, 'options', {}),
           );
@@ -78,6 +81,7 @@ export class HandlebarsAdapter implements TemplateAdapter {
     const { templateId, error } = precompile(
       mailTemplate,
       mailerOptions.template,
+      this.precompiledTemplates,
     );
     if (error) {
       return callback(error);
@@ -91,13 +95,13 @@ export class HandlebarsAdapter implements TemplateAdapter {
     if (runtimeOptions.partials) {
       const files = glob.sync(path.join(runtimeOptions.partials.dir, '*.hbs'));
       files.forEach((file) =>
-        precompile(file, runtimeOptions.partials),
+        precompile(file, runtimeOptions.partials, this.precompiledPartials),
       );
     }
 
     const rendered = this.precompiledTemplates[templateId](mailContext, {
       ...runtimeOptions,
-      partials: this.precompiledTemplates,
+      partials: this.precompiledPartials,
     });
 
     if (this.config.inlineCssEnabled) {
